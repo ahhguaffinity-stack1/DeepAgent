@@ -1,0 +1,42 @@
+import os
+import json
+import logging
+from datetime import datetime
+from pathlib import Path
+from tools.terminal import TerminalTools
+
+# ... (إعدادات logging كما هي)
+
+class DeepAgent:
+    def __init__(self):
+        self.terminal = TerminalTools()
+        self.memory = []
+        self.max_memory = 50
+
+    def process(self, user_input: str) -> str:
+        """معالجة طلب المستخدم"""
+        self.memory.append({"role": "user", "content": user_input, "time": datetime.now().isoformat()})
+        if len(self.memory) > self.max_memory:
+            self.memory.pop(0)
+
+        user_input_lower = user_input.lower().strip()
+
+        # تنفيذ أوامر terminal
+        if user_input_lower.startswith("نفذ") or user_input_lower.startswith("execute"):
+            command = user_input_lower.replace("نفذ", "").replace("execute", "").strip()
+            # التحقق من وجود كلمة "مع تأكيد"
+            confirm = "مع تأكيد" in command or "confirm" in command
+            command = command.replace("مع تأكيد", "").replace("confirm", "").strip()
+            return self.terminal.execute_command(command, confirm=confirm)
+
+        elif user_input_lower in ["معلومات", "info", "حالة", "status"]:
+            return self.terminal.get_system_info()
+
+        elif user_input_lower in ["عمليات", "processes"]:
+            return self.terminal.list_processes()
+
+        elif user_input_lower in ["مساعدة", "help"]:
+            return self.terminal._get_help_message("")
+
+        else:
+            return f"🤖 **أنا DeepAgent.** لم أفهم طلبك. اكتب 'مساعدة' لرؤية الأوامر المتاحة."
